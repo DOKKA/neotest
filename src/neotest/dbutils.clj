@@ -58,3 +58,26 @@
              res (. iter next)]
          (. iter close)
          res)))
+
+(defn get-nodes [iter]
+  (loop [iter iter
+         nodes []]
+    (when (. iter hasNext)
+      (recur iter (do (conj nodes (. iter next))))))
+  nodes)
+
+(defn get-class-node2 [db name]
+  (declare nodes tx)
+  (try (def tx (. db beginTx))
+       (let [label (DynamicLabel/label "Class")
+             iter (.. db (findNodesByLabelAndProperty label "name" ^String name) iterator)]
+         (def nodes (loop [nds []]
+                      (if-not (. iter hasNext)
+                        nds
+                        (recur (conj nds (. iter next)))))))
+       (catch Exception e
+         (print (. e getMessage)))
+       (finally
+         (. tx close)))
+  nodes)
+
